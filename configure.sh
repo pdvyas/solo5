@@ -45,14 +45,13 @@ cc_is_gcc()
 
 ld_is_lld()
 {
-	${LD} --version 2>&1 | grep -q '^LLD'
+    type $1 >/dev/null 2>&1 && $1 --version 2>&1 | grep -q '^LLD'
 }
 
 # Allow external override of CC.
 # TODO: This needs further work to provide full support for cross-compiling and
 # correctly pass through to ukvm-configure where required.
 CC=${CC:-cc}
-LD=${LD:-ld}
 
 TARGET=$(${CC} -dumpmachine)
 [ $? -ne 0 ] &&
@@ -78,6 +77,8 @@ case $(uname -s) in
     Linux)
         # On Linux/gcc we use -nostdinc and copy all the gcc-provided headers.
         cc_is_gcc || die "Only 'gcc' 4.x+ is supported on Linux"
+        LD=${LD:-ld}
+
         CC_INCDIR=$(${CC} -print-file-name=include)
         [ -d "${CC_INCDIR}" ] || die "Cannot determine gcc include directory"
         mkdir -p ${HOST_INCDIR}
@@ -109,6 +110,8 @@ case $(uname -s) in
         cc_is_clang || die "Only 'clang' is supported on FreeBSD"
         [ "${TARGET_ARCH}" = "x86_64" ] ||
             die "Only 'x86_64' is supported on FreeBSD"
+        LD=${LD:-ld}
+
         INCDIR=/usr/include
         SRCS_MACH="machine/_stdint.h machine/_types.h machine/endian.h \
             machine/_limits.h"
@@ -137,7 +140,11 @@ case $(uname -s) in
         cc_is_clang || die "Only 'clang' is supported on OpenBSD"
         [ "${TARGET_ARCH}" = "x86_64" ] ||
             die "Only 'x86_64' is supported on OpenBSD"
-        ld_is_lld || die "Only 'ld.lld' is supported on OpenBSD"
+        # Allow the user to explicitly override ${LD};
+        # if unset default to looking for the ld.lld.
+        LD=${LD:-/usr/bin/ld.lld}
+        ld_is_lld ${LD} || die "Only 'ld.lld' is supported on OpenBSD"
+
         INCDIR=/usr/include
         SRCS_MACH="machine/_float.h machine/endian.h machine/cdefs.h machine/_types.h"
         SRCS_SYS="sys/_null.h sys/cdefs.h sys/_endian.h sys/endian.h sys/_types.h"
