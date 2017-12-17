@@ -141,7 +141,7 @@ case $(uname -s) in
         INCDIR=/usr/include
         SRCS_MACH="machine/_float.h machine/endian.h machine/cdefs.h machine/_types.h"
         SRCS_SYS="sys/_null.h sys/cdefs.h sys/_endian.h sys/endian.h sys/_types.h"
-        SRCS_AMD64="amd64/_float.h, amd64/stdarg.h amd64/endian.h"
+        SRCS_AMD64="amd64/_float.h amd64/stdarg.h amd64/endian.h"
         SRCS="float.h stddef.h stdint.h stdbool.h stdarg.h"
 
         mkdir -p ${HOST_INCDIR}
